@@ -1,0 +1,111 @@
+#! /bin/sh
+# -*- mode: scheme; coding: utf-8 -*-
+exec guile -L . -e main -s "$0" "$@"
+!#
+
+(eval-when (expand load eval)
+  (use-modules (oop goops))
+
+  (default-duplicate-binding-handler
+    '(merge-generics replace warn-override-core warn last))
+
+  (use-modules (g-golf)
+               (market))
+
+  (g-irepository-require "Gtk" #:version "4.0")
+  (for-each (lambda (name)
+              (gi-import-by-name "Gtk" name))
+      '("Application"
+        "ApplicationWindow"
+        "HeaderBar"
+        "SearchBar"
+        "SearchEntry"
+        "Box"
+        "Label"
+        "ToggleButton"
+        "ListBox"
+        "ListBoxRow")))
+
+(define (activate app)
+  (let* ((window (make <gtk-application-window>
+                   #:title "Groupthink"
+                   #:default-width 400
+                   #:default-height 400
+                   #:application app))
+         (header-bar (make <gtk-header-bar>))
+         (main-box (make <gtk-box>
+                     #:orientation 'horizontal))
+         (buttons-box (make <gtk-box>
+                       #:orientation 'horizontal))
+         (markets (make <gtk-list-box>
+                    #:hexpand #t))
+         (add-market-button (make <gtk-button>
+                              #:label "Add Market")))
+
+    (define (add-market name value)
+      (let ((market (make <gtk-list-box-row>
+                   #:margin-top 10
+                   #:margin-start 20
+                   #:margin-end 20
+                   #:margin-bottom 10))
+         (market-box (make <gtk-box>
+                      #:orientation 'vertical
+                      #:hexpand #t))
+         (market-name (make <gtk-box>
+                       #:orientation 'horizontal
+                       #:spacing 6
+                       #:hexpand #t))
+         (market-value (make <gtk-box>
+                       #:orientation 'horizontal
+                       #:spacing 6
+                       #:hexpand #t))
+         (name-label  (make <gtk-label>
+                   #:label name
+                   #:hexpand #t
+                   #:vexpand #t
+                   #:halign 'center
+                   #:valign 'center
+                   #:css-classes '("large-title")))
+         (value-label  (make <gtk-label>
+                   #:label value
+                   #:hexpand #t
+                   #:vexpand #t
+                   #:halign 'center
+                   #:valign 'center
+                   #:css-classes '("large-title"))))
+
+        (connect markets
+                 'row-selected
+                 (lambda (widget row)
+                   (if (eq? row market)
+                       (set-text value-label "SELECTED"))))
+
+        (append markets market)
+        (set-child market market-box)
+
+        (append market-box market-name)
+        (append market-name name-label)
+
+        (append market-box market-value)
+        (append market-value value-label)))
+
+    (connect add-market-button
+             'clicked
+             (lambda (b)
+               (add-market "FOO" "3000")))
+
+    (set-titlebar window header-bar)
+    (set-child window main-box)
+    (append main-box buttons-box)
+    (append buttons-box add-market-button)
+    (append main-box markets)
+    (add-market "BTC" "1000")
+    (add-market "ETH" "2000")
+    (show window)))
+
+(define (main args)
+  (let ((app (make <gtk-application>
+               #:application-id "org.gtk.example")))
+    (connect app 'activate activate)
+    (let ((status (run app 0 '())))
+      (exit status))))

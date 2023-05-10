@@ -1,5 +1,5 @@
 (use-modules (srfi srfi-64)
-             (main))
+             (market))
 
 (test-begin "market-price")
 

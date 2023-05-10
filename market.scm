@@ -1,6 +1,6 @@
 (use-modules (rnrs))
 
-(define-module (main)
+(define-module (market)
   #: export (make-market
              make-trade
              make-user
