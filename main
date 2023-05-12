@@ -24,7 +24,9 @@ exec guile -L . -e main -s "$0" "$@"
         "Label"
         "ToggleButton"
         "ListBox"
-        "ListBoxRow")))
+        "ListBoxRow"
+        "Entry"
+        "SpinButton")))
 
 (define (activate app)
   (let* ((window (make <gtk-application-window>
@@ -39,6 +41,19 @@ exec guile -L . -e main -s "$0" "$@"
                        #:orientation 'horizontal))
          (markets (make <gtk-list-box>
                     #:hexpand #t))
+         (new-name (make <gtk-entry>
+                     #:placeholder-text "Name"))
+         (new-value (make <gtk-spin-button>
+                        #:adjustment (make <gtk-adjustment>
+                                        #:lower 0
+                                        #:upper 100000
+                                        #:step-increment 1
+                                        #:page-increment 10
+                                        #:page-size 0
+                                        #:value 0)
+                        #:climb-rate 1
+                        #:digits 0
+                      ))
          (add-market-button (make <gtk-button>
                               #:label "Add Market")))
 
@@ -92,11 +107,13 @@ exec guile -L . -e main -s "$0" "$@"
     (connect add-market-button
              'clicked
              (lambda (b)
-               (add-market "FOO" "3000")))
+               (add-market (!text new-name) (number->string (!value new-value)))))
 
     (set-titlebar window header-bar)
     (set-child window main-box)
     (append main-box buttons-box)
+    (append buttons-box new-name)
+    (append buttons-box new-value)
     (append buttons-box add-market-button)
     (append main-box markets)
     (add-market "BTC" "1000")
